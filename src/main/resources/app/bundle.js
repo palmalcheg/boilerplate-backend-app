@@ -175,7 +175,7 @@
             wsURL: 'wss://' + location.hostname + (location.port ? ':' + location.port : '') + '/signaling',
             mediaConfig: {
                 video: true,
-                audio: false,
+                audio: true,
             },
             peerConfig: {
                 iceServers: [
