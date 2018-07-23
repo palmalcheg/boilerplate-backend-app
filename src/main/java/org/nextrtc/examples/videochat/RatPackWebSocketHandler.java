@@ -39,6 +39,11 @@ public class RatPackWebSocketHandler implements WebSocketHandler<String> {
         }
 
         @Override
+        public void close() {
+            socket.close();
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
