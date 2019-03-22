@@ -1,4 +1,8 @@
-package org.nextrtc.examples.videochat;
+package org.esolution.poc;
+
+import java.security.SecureRandom;
+
+import org.esolution.poc.services.HttpHandler;
 
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -6,10 +10,33 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import ratpack.server.BaseDir;
 import ratpack.server.RatpackServer;
 
-import java.security.SecureRandom;
-
-public class Main {
+public final class Main {
+	
+	private Main () {}
+	
     public static void main(String[] args) throws Exception {
+        RatpackServer.start(
+                server -> server
+                        .serverConfig(
+                                config -> config
+                                        .connectQueueSize(10)
+                                        .threads(10)
+                                        .baseDir(BaseDir.find())
+                                        .ssl(buildSslContext())
+                        )
+                        .registryOf(registry -> registry
+                                .add(new HttpHandler())
+                        )
+                        .handlers(
+                                chain -> chain
+                                        .get("signaling", HttpHandler.class)
+                                        .files(f -> f.dir("app")
+                                                .indexFiles("index.html"))
+                        )
+        );
+    }
+    
+    public static void main2(String[] args) throws Exception {
         RatpackServer.start(
                 server -> server
                         .serverConfig(
