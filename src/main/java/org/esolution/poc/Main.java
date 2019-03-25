@@ -36,28 +36,6 @@ public final class Main {
         );
     }
     
-    public static void main2(String[] args) throws Exception {
-        RatpackServer.start(
-                server -> server
-                        .serverConfig(
-                                config -> config
-                                        .connectQueueSize(10)
-                                        .threads(10)
-                                        .baseDir(BaseDir.find())
-                                        .ssl(buildSslContext())
-                        )
-                        .registryOf(registry -> registry
-                                .add(new HttpHandler())
-                        )
-                        .handlers(
-                                chain -> chain
-                                        .get("signaling", HttpHandler.class)
-                                        .files(f -> f.dir("app")
-                                                .indexFiles("index.html"))
-                        )
-        );
-    }
-
     private static SslContext buildSslContext() {
         try {
             SelfSignedCertificate localhost = new SelfSignedCertificate("localhost", new SecureRandom(), 1024);
