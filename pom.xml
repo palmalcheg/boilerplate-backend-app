@@ -21,6 +21,7 @@
 		<retrofit2.version>2.5.0</retrofit2.version>
 		<slf4j-api.version>1.7.25</slf4j-api.version>
 		<log4j-slf4j-impl.version>2.10.0</log4j-slf4j-impl.version>
+		<exec.mainClass>org.esolution.poc.Main</exec.mainClass>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -122,30 +123,34 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<archive>
-								<manifest>
-									<mainClass>
-										org.esolution.poc.Main
-									</mainClass>
-								</manifest>
-							</archive>
-							<descriptorRefs>
-								<descriptorRef>jar-with-dependencies</descriptorRef>
-							</descriptorRefs>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-shade-plugin</artifactId>
+		        <version>3.2.1</version>
+		        <executions>
+		          <execution>
+		            <phase>package</phase>
+		            <goals>
+		              <goal>shade</goal>
+		            </goals>
+		            <configuration>
+		              <artifactSet>
+		                <excludes>
+		                  <exclude>com.google.dagger:dagger-compiler</exclude>
+		                  <exclude>com.google.dagger:dagger-producers</exclude>
+		                  <exclude>junit:junit</exclude>
+		                  <exclude>jmock:*</exclude>
+		                  <exclude>*:xml-apis</exclude>
+		                </excludes>
+		              </artifactSet>
+		              <transformers>
+		                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+		                  <mainClass>${exec.mainClass}</mainClass>
+		                </transformer>
+		              </transformers>
+		            </configuration>
+		          </execution>
+		        </executions>
+		    </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>

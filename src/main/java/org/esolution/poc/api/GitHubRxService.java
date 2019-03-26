@@ -25,6 +25,10 @@ public class GitHubRxService {
 		gitHubApi = api;
 	}
 
+	public GitHubRxApi api() {
+		return gitHubApi;
+	}
+
 	public Observable<String> getTopContributors(String userName) {
 		return gitHubApi.listRepos(userName)
 				.flatMapIterable(x -> x)
