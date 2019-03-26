@@ -7,7 +7,7 @@
 	<groupId>org.esolution.poc</groupId>
 	<packaging>jar</packaging>
 	<name>backend</name>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.2</version>
 
 	<url>http://github.com/palmalcheg/boilerplate-backend-app</url>
 
