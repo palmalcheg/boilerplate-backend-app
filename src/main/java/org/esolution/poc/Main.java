@@ -57,7 +57,7 @@ public final class Main {
                         )
                         .handlers(
                                 chain -> chain
-                                        .get("github/:user?", gitHubRepos)
+                                        .get("github/:user", gitHubRepos)
                                         .get("github", gitHubPublicRepos)
                                         .files(f -> f.dir("app")
                                                 .indexFiles("index.html"))
