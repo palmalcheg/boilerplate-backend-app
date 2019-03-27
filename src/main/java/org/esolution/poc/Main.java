@@ -34,6 +34,14 @@ public final class Main {
     		  .subscribe(ctx::render);
     	};
     	
+    	Handler gitHubPublicRepos = (ctx) -> {
+    		GitHubRxService gitHubOps = ctx.get(GitHubRxService.class);
+    		GitHubRxApi api = gitHubOps.api();
+    		api.listPublicRepos()
+    		.map(Jackson::json)
+    		.subscribe(ctx::render);
+    	};
+    	
         RatpackServer.start(
                 server -> server
                         .serverConfig(
@@ -50,6 +58,7 @@ public final class Main {
                         .handlers(
                                 chain -> chain
                                         .get("github/:user?", gitHubRepos)
+                                        .get("github", gitHubPublicRepos)
                                         .files(f -> f.dir("app")
                                                 .indexFiles("index.html"))
                         )

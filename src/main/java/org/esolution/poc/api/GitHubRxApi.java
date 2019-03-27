@@ -10,6 +10,9 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 
 public interface GitHubRxApi {
+	
+	@GET("repositories")
+    Observable<List<Repository>> listPublicRepos();
  
     @GET("users/{user}/repos")
     Observable<List<Repository>> listRepos(@Path("user") String user);
