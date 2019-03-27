@@ -1,6 +1,7 @@
 package org.esolution.poc;
 
 import java.security.SecureRandom;
+import java.util.Optional;
 
 import org.esolution.poc.api.GitHubRxApi;
 import org.esolution.poc.api.GitHubRxService;
@@ -12,6 +13,7 @@ import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.util.internal.StringUtil;
 import ratpack.handling.Handler;
 import ratpack.jackson.Jackson;
+import ratpack.path.PathTokens;
 import ratpack.server.BaseDir;
 import ratpack.server.RatpackServer;
 
@@ -21,7 +23,7 @@ public final class Main {
 	
     public static void main(String[] args) throws Exception {
     	
-    	Handler gitHubRepos = (ctx) -> {
+    	Handler gitHubUserRepos = (ctx) -> {
     		GitHubRxService gitHubOps = ctx.get(GitHubRxService.class);
     		GitHubRxApi api = gitHubOps.api();
     		String userName = ctx.getPathTokens().get("user");
@@ -30,6 +32,26 @@ public final class Main {
     			return;
     		}
     		api.listRepos(userName)
+    		  .map(Jackson::json)
+    		  .subscribe(ctx::render);
+    	};
+    	
+    	Handler gitUsersPageable = (ctx) -> {
+    		GitHubRxService gitHubOps = ctx.get(GitHubRxService.class);
+    		GitHubRxApi api = gitHubOps.api();
+    		final PathTokens pathTokens = ctx.getPathTokens();
+    		
+    		int currentPage = Optional.of("start")
+					      .map(pathTokens::get)
+			              .map(Integer::valueOf)
+					      .orElse(0);
+    		
+    		int onPage = Optional.of("per_page")
+				      .map(pathTokens::get)
+		              .map(Integer::valueOf)
+				      .orElse(0);
+    		   ; 	
+    		api.listAllUsers(currentPage, onPage)
     		  .map(Jackson::json)
     		  .subscribe(ctx::render);
     	};
@@ -57,8 +79,10 @@ public final class Main {
                         )
                         .handlers(
                                 chain -> chain
-                                        .get("github/:user", gitHubRepos)
                                         .get("github", gitHubPublicRepos)
+                                        .get("github/users/:user?:[\\d*[a-zA-Z]+\\d*]+/repos", gitHubUserRepos)
+                                        .get("github/users/:start?:[\\d]+/:per_page?:[\\d]+?", gitUsersPageable)
+                                       
                                         .files(f -> f.dir("app")
                                                 .indexFiles("index.html"))
                         )
