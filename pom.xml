@@ -15,7 +15,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<ratpack-core.version>1.5.2</ratpack-core.version>
+		<ratpack-core.version>1.6.0</ratpack-core.version>
 		<dagger2.version>2.21</dagger2.version>
 		<rxjava2.version>2.2.7</rxjava2.version>
 		<retrofit2.version>2.5.0</retrofit2.version>
@@ -23,6 +23,7 @@
 		<slf4j-api.version>1.7.25</slf4j-api.version>
 		<log4j-slf4j-impl.version>2.10.0</log4j-slf4j-impl.version>
 		<exec.mainClass>org.esolution.poc.Main</exec.mainClass>
+		<jacoco.version>0.8.3</jacoco.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -88,6 +89,12 @@
 			<version>${lombok.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.4.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<resources>
@@ -134,35 +141,36 @@
 				</executions>
 			</plugin>
 			<plugin>
-		        <groupId>org.apache.maven.plugins</groupId>
-		        <artifactId>maven-shade-plugin</artifactId>
-		        <version>3.2.1</version>
-		        <executions>
-		          <execution>
-		            <phase>package</phase>
-		            <goals>
-		              <goal>shade</goal>
-		            </goals>
-		            <configuration>
-		              <artifactSet>
-		                <excludes>
-		                  <exclude>com.google.dagger:dagger-compiler</exclude>
-		                  <exclude>com.google.dagger:dagger-producers</exclude>
-		                  <exclude>junit:junit</exclude>
-		                  <exclude>jmock:*</exclude>
-		                  <exclude>*:xml-apis</exclude>
-		                </excludes>
-		              </artifactSet>
-		              <transformers>
-		                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-		                  <mainClass>${exec.mainClass}</mainClass>
-		                </transformer>
-		              </transformers>
-		            </configuration>
-		          </execution>
-		        </executions>
-		    </plugin>
-		    <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<excludes>
+									<exclude>com.google.dagger:dagger-compiler</exclude>
+									<exclude>com.google.dagger:dagger-producers</exclude>
+									<exclude>junit:junit</exclude>
+									<exclude>jmock:*</exclude>
+									<exclude>*:xml-apis</exclude>
+								</excludes>
+							</artifactSet>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>${exec.mainClass}</mainClass>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.8</version>
@@ -174,21 +182,20 @@
 						</goals>
 						<configuration>
 							<target>
-							    <echo>Delete ${project.build.directory}/original-${project.build.finalName}.jar</echo>
 								<delete
 									file="${project.build.directory}/original-${project.build.finalName}.jar" />
 							</target>
 						</configuration>
 					</execution>
 				</executions>
-		    </plugin>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.11.0</version>
 				<executions>
 					<execution>
-					    <phase>generate-sources</phase>
+						<phase>generate-sources</phase>
 						<goals>
 							<goal>cpd-check</goal>
 						</goals>
@@ -196,25 +203,82 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+					    <id>default-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+				    <configuration>
+                        <append>true</append>
+                        <propertyName>surefireArgLine</propertyName>
+                    </configuration>
+					</execution>
+					<execution>
+						<id>jacoco-report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<!-- Add this checking -->
+					<!-- execution>
+						<id>jacoco-check</id>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>PACKAGE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.9</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution-->
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.2</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.1</version>
+				<configuration>
+	                <printSummary>false</printSummary>
+	                <redirectTestOutputToFile>true</redirectTestOutputToFile>
+	                <forkCount>3</forkCount>
+	                <reuseForks>true</reuseForks>
+	                <argLine>${surefireArgLine} -Xmx1024m -noverify</argLine>                  
+	            </configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 				<version>3.7.1</version>
 			</plugin>
-		
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>2.8.2</version></plugin>
-    
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.0.0-M1</version></plugin>
-    </plugins>
+		</plugins>
 	</build>
 
 	<reporting>
 		<plugins>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
