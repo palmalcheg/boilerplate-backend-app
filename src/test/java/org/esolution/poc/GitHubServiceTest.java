@@ -6,7 +6,7 @@ public class GitHubServiceTest {
 	
 	
 	@Test
-	public void testVM() {		
+	public void testVM() {
 	}
 
 }

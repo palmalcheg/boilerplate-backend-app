@@ -2,20 +2,14 @@ package org.esolution.poc.models;
 
 import java.util.List;
 
+import lombok.Data;
+
+@Data
 public class SearchResults {
 	
 	int current;
     Integer next;
-    Integer last;
-    
+    Integer last;    
     private List items;
-    
-    public Integer nextPage() {
-    	return next;
-    }
-    
-    public <T> List<T> items() {
-    	return items;
-    }
 	
 }

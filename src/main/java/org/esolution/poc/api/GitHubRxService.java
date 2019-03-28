@@ -1,6 +1,8 @@
 package org.esolution.poc.api;
 
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.esolution.poc.models.Contributor;
 import org.esolution.poc.models.SearchResults;
@@ -47,26 +49,38 @@ public class GitHubRxService {
 	
 	public Observable<?> findUsers(String q, int currentPage) {
 		  return getPageAndNext(p -> gitHubApi.userSearch(q, currentPage), currentPage)
-				  .flatMapIterable(r -> r.body().items());
+				  .flatMapIterable(r -> r.body().getItems());
 	}
 	
-	Observable<Response<SearchResults>> getPageAndNext(Function<Integer, Observable<Response<SearchResults>>> source, int page) {
+	Observable<Response<SearchResults>> getPageAndNext(Function<Integer, Observable<Response<SearchResults>>> source, Integer page) {
 		  return source.apply(page)
 		      .concatMap(response -> {
-		    	  ajustResults(response);
+		    	  int next = getNext(response);
 		          // Terminal case.
-		          if (response.body().nextPage() == null) {
+		    	  
+		          if (next == -1) {
 		            return Observable.just(response);
 		          }
 		          return Observable.just(response)
-		              .concatWith(getPageAndNext(source, response.body().nextPage()));
+		              .concatWith(getPageAndNext(source, response.body().getNext()));
 		        }
 		      ); 
 		}
+	
+	Pattern pageNum =Pattern.compile("page=(\\d)+");
 
-	private void ajustResults(Response<SearchResults> response) {
-		SearchResults res = response.body();
+	private int getNext(Response<SearchResults> response) {
 		Headers headers = response.headers();
 		String link = headers.get("Link");
+		int  left = -1;
+		if (link != null) {
+			Matcher pageMatcher = pageNum.matcher(link);
+			while (pageMatcher.find()) {		
+				String val = pageMatcher.group().replace("page=", "");
+				Integer right = Integer.valueOf(val);
+				left = Math.max(left, right);
+			}	
+		}
+		return left;
 	}
 }
