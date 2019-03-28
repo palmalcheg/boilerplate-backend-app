@@ -1,32 +1,14 @@
 package org.esolution.poc.models;
-import com.google.gson.annotations.SerializedName;
 
+import com.google.gson.annotations.SerializedName;
+import lombok.Data;
+import lombok.ToString;
+
+@Data
+@ToString
 public class Contributor {
 
     @SerializedName("login")
     private String name;
-
     private Integer contributions;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getContributions() {
-        return contributions;
-    }
-
-    public void setContributions(Integer contributions) {
-        this.contributions = contributions;
-    }
-
-    @Override
-    public String toString() {
-        return "Contributer [name=" + name + ", contributions=" + contributions + "]";
-    }
-
 }
