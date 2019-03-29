@@ -4,8 +4,10 @@ import java.util.List;
 
 import org.esolution.poc.models.Contributor;
 import org.esolution.poc.models.Repository;
+import org.esolution.poc.models.SearchResults;
 
 import io.reactivex.Observable;
+import retrofit2.Response;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -24,5 +26,8 @@ public interface GitHubRxApi {
     @GET("repos/{user}/{repo}/contributors")
     Observable<List<Contributor>> listRepoContributors(
       @Path("user") String user,
-      @Path("repo") String repo);   
+      @Path("repo") String repo);
+
+    @GET("search/users")
+	Observable<Response<SearchResults>> userSearch(@Query("q") String query, @Query("page") int page);
 }

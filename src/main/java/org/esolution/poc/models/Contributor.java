@@ -14,5 +14,5 @@ public class Contributor {
 
     @SerializedName("login")
     private String name;
-    private Integer contributions;
+    private Integer contributions;    
 }
