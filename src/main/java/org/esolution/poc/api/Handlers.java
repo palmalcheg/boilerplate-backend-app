@@ -3,10 +3,10 @@ package org.esolution.poc.api;
 import java.util.Optional;
 
 import io.netty.util.internal.StringUtil;
-import io.reactivex.schedulers.Schedulers;
 import ratpack.handling.Handler;
 import ratpack.jackson.Jackson;
 import ratpack.path.PathTokens;
+import ratpack.rx2.RxRatpack;
 import ratpack.util.MultiValueMap;
 
 public abstract class Handlers {
@@ -42,9 +42,11 @@ public abstract class Handlers {
 		              .map(Integer::valueOf)
 				      .orElse(0);
     		   ; 	
-    		api.listAllUsers(currentPage, onPage)
-    		  .map(Jackson::json)
-    		  .subscribe(ctx::render);
+    		   RxRatpack
+    		     .promiseAll(api.listAllUsers(currentPage, onPage))
+	  		 .then(e -> {
+				  ctx.render(Jackson.json(e));
+			  }); 
     	};
 	}
 
@@ -52,10 +54,11 @@ public abstract class Handlers {
 		return (ctx) -> {
     		GitHubRxService gitHubOps = ctx.get(GitHubRxService.class);
     		GitHubRxApi api = gitHubOps.api();
-    		api.listPublicRepos()
-    		  .subscribeOn(Schedulers.computation())
-    		  .map(Jackson::json)
-    		.subscribe(ctx::render);
+    		RxRatpack
+  		     .promiseAll(api.listPublicRepos())
+	  		 .then(e -> {
+				  ctx.render(Jackson.json(e));
+			  }); 
     	};
 	}
 
@@ -64,9 +67,13 @@ public abstract class Handlers {
     		GitHubRxService gitHubOps = ctx.get(GitHubRxService.class);
             final MultiValueMap<String, String> query = ctx.getRequest().getQueryParams();
     		String queryStr = query.get("q");
-    		gitHubOps.findUsers(queryStr, 0)
-    		    .map(Jackson::json)
-    		  .subscribe(ctx::render);
+    		String page = query.get("page");
+    		int pageInt = page == null ? 0 : new Integer(page);
+    		RxRatpack
+    		  .promiseAll(gitHubOps.findUsers(queryStr, pageInt))
+    		  .then(e -> {
+    			  ctx.render(Jackson.json(e));
+    		  });    		
     	};
 	}
 

@@ -1,6 +1,6 @@
 package org.esolution.poc;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class GitHubServiceTest {
 	

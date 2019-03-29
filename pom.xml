@@ -40,6 +40,11 @@
 			<version>${ratpack-core.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.ratpack</groupId>
+			<artifactId>ratpack-rx2</artifactId>
+			<version>${ratpack-core.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j-api.version}</version>

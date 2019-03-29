@@ -1,13 +1,18 @@
 package org.esolution.poc.api;
 
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.esolution.poc.models.Contributor;
 import org.esolution.poc.models.SearchResults;
 
 import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.Headers;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -47,40 +52,56 @@ public class GitHubRxService {
 				.distinct();
 	}
 	
-	public Observable<?> findUsers(String q, int currentPage) {
-		  return getPageAndNext(p -> gitHubApi.userSearch(q, currentPage), currentPage)
-				  .flatMapIterable(r -> r.body().getItems());
+	public Observable<SearchResults> findUsers(String q, int currentPage) {
+		  return getPageAndNext(p -> gitHubApi.userSearch(q, p), currentPage)
+				     .filter(r -> r.body() != null)
+				     .map(r -> r.body());
 	}
 	
-	Observable<Response<SearchResults>> getPageAndNext(Function<Integer, Observable<Response<SearchResults>>> source, Integer page) {
+	private Observable<Response<SearchResults>> getPageAndNext(Function<Integer, Observable<Response<SearchResults>>> source, Integer page) {
 		  return source.apply(page)
+			  .subscribeOn(Schedulers.io()) 	   
 		      .concatMap(response -> {
-		    	  int next = getNext(response);
-		          // Terminal case.
-		    	  
-		          if (next == -1) {
+		    	  extractNavigation(response);
+		    	  SearchResults search = response.body();
+		          // Terminal case.	
+		          if (search == null || !search.hasNext() || Objects.equals(search.getNext(), page) ) {
 		            return Observable.just(response);
 		          }
 		          return Observable.just(response)
-		              .concatWith(getPageAndNext(source, response.body().getNext()));
+		              .concatWith(getPageAndNext(source, search.getNext()));
 		        }
 		      ); 
 		}
 	
-	Pattern pageNum =Pattern.compile("page=(\\d)+");
+	Pattern pageNum = Pattern.compile("page=(\\d)+");
 
-	private int getNext(Response<SearchResults> response) {
+	private void extractNavigation(Response<SearchResults> response) {
 		Headers headers = response.headers();
 		String link = headers.get("Link");
-		int  left = -1;
+		if (link ==null)
+			return;
+		Map<String,Integer> m = Stream.of(link.split(","))
+		   .collect(Collectors.toMap(this::getLinkKey, this::getPgNum));
+		SearchResults results = response.body();
+		if (results != null) {
+			results.setNavigation(m);
+		}
+	}
+
+	private String getLinkKey(String part) {
+		int lastIndexOf = part.indexOf("rel=\"");
+		return part.substring(lastIndexOf+4).replace("\"", "");
+	}
+	
+	private Integer getPgNum(String link) {
 		if (link != null) {
 			Matcher pageMatcher = pageNum.matcher(link);
 			while (pageMatcher.find()) {		
 				String val = pageMatcher.group().replace("page=", "");
-				Integer right = Integer.valueOf(val);
-				left = Math.max(left, right);
+				return Integer.valueOf(val);
 			}	
 		}
-		return left;
+		return -1;
 	}
 }

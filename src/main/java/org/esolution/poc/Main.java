@@ -4,6 +4,7 @@ package org.esolution.poc;
 import org.esolution.poc.api.GitHubRxService;
 import org.esolution.poc.api.Handlers;
 
+import ratpack.rx2.RxRatpack;
 import ratpack.server.BaseDir;
 import ratpack.server.RatpackServer;
 
@@ -12,6 +13,7 @@ public final class Main {
 	private Main () {} 
 	
     public static void main(String[] args) throws Exception {
+    	RxRatpack.initialize();
         RatpackServer.start(
                 server -> server
                         .serverConfig(
